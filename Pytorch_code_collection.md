@@ -20,3 +20,38 @@ device = torch.device(f'cuda:{GPU_NUM}' if torch.cuda.is_available() else 'cpu')
 torch.cuda.set_device(device) # change allocation of current GPU
 print ('Current cuda device ', torch.cuda.current_device()) # check
 ```
+
+#### Pytorch dataloader shape 확인하기
+```
+dataiter = iter(dataloader)
+images, labels = dataiter.next()
+print(type(images))
+print(images.shape)
+print(labels.shape)
+```
+
+#### Image Augmentation 여러 방법
+* 방법 1
+    ```
+    transform_train = transforms.Compose([transforms.Resize((32, 32)),
+                                      transforms.RandomHorizontalFlip(), #0.5확률로 이미지를 뒤집음
+                                      transforms.RandomRotation(10), # 10도 이하로 랜덤하게 기울인다.
+                                      transforms.RandomAffine(0, shear=10, scale=(0.8, 1.2)), # 아핀 변환
+                                      transforms.ColorJitter(brightness=0.2, contrast=0.2, saturation=0.2), # 밝기, 대비, 채도를 랜덤하게 조절한다.
+                                      transforms.ToTensor(),
+                                      transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
+                                     ])
+
+    transformer = transforms.Compose([transforms.Resize((32, 32)),
+                                    transforms.ToTensor(),
+                                    transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
+                                    ])
+
+
+    training_dataset = datasets.CIFAR10(root='./data', train=True, download=True, transform=transform_train)
+    validation_dataset = datasets.CIFAR10(root='./data', train=False, download=True, transform=transformer)
+
+    training_loader = torch.utils.data.DataLoader(dataset=training_dataset, batch_size=100, shuffle=True)
+    validation_loader = torch.utils.data.DataLoader(dataset=validation_dataset, batch_size=100, shuffle=False)
+
+    ```
