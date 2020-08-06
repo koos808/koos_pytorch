@@ -55,3 +55,22 @@ print(labels.shape)
     validation_loader = torch.utils.data.DataLoader(dataset=validation_dataset, batch_size=100, shuffle=False)
 
     ```
+* 방법 2
+    ```
+    import Augmentor # pip install Augmentor
+
+    ## 증강 시킬 이미지 폴더 경로
+    img = Augmentor.Pipeline('./aug_image/class1')
+    ## 좌우 반전
+    img.flip_left_right(probability=0.5) 
+    ## 상하 반전
+    img.flip_top_bottom(probability=0.5)
+    ## 왜곡
+    #img.random_distortion(probability=1.0, grid_width=10, grid_height=10, magnitude=8)
+    img.rotate(probability=0.7, max_left_rotation=10, max_right_rotation=10)
+    img.zoom(probability=0.5, min_factor=1.1, max_factor=1.5)
+    ## 증강 이미지 수
+    img.sample(4000)
+    #img.sample(5000)
+    img.process()
+    ```
