@@ -1,4 +1,11 @@
+※ 참고 한 책&사이트 
+---
+
+* 1)펭귄브로의 3분 딜버닝, 파이토치맛
+
+
 ※ 파이토치 설치 Install Pytorch 
+---
 
 * RTX 3080 컴퓨터 설정 업데이트 날짜
   * DATE : `2021-02-24`
@@ -27,6 +34,7 @@
   * `pip install jupyter`
 
 * 7) GPU 사용 유무 확인 및 pytorch 버전 확인
+    ```
     import torch
     print(torch.cuda.is_available())
     print(torch.cuda.device_count())
@@ -80,4 +88,72 @@
   * 
 
 ## 3. 응용
+
+* 신경망 모듈(`torch.nn.Module`)
+  * `class NeuralNet(torch.nn.Module):`
+
+  * `__init__()` 함수
+    * 파이썬에서 객체가 갖는 속성값을 초기화하는 역할로, 객체가 생성될 때 자동으로 호출된다.
+
+  * `super()` 함수
+    * super() 함수를 부르면 만든 NeuralNet 클래스는 파이토치의 nn.Module 클래스의 속성들을 가지고 초기화된다.
+
+    ```
+    def __init__(self, input_size, hidden_size):
+        super(NeuralNet, self).__init__()
+    ```
+
+* 오차함수 및 최적화 알고리즘
+  * 오차함수
+    * ex) `criterion = torch.nn.BCELoss()`
+  * 최적화 알고리즘
+    * ex) `optimizer = torch.optim.SGD(model.parameters(), lr = learning_rate`
+    * optimizer는 step() 함수를 부를 때마다 가중치를 학습률만큼 갱신한다.
+    * model.parameter() 함수로 추출한 모델 내부의 가중치와 학습률을 입력한다.
+
+* item()
+  * ex) `test_loss_before.item())` : item() 함수는 텐서 속의 숫자를 스칼라 값으로 반환한다.
+
+* model.train() : 학습 모드 전환
+  * 모델에 train() 함수를 호출해 학습 모드로 바꿔준다. epoch마다 새로운 gradient 값을 계산하므로 zero_grad() 함수를 호출해 경사값을 0으로 설정한다.
+
+* 역전파 함수
+  * `train_loss.backward()` : 오차 함수를 가중치로 미분하여 오차가 최소가 되는 방향을 구함
+  * `optimizer.step()` : 위 에서 구한 방향으로 모델을 학습률만큼 이동시킨다.
+
+* 모델 저장 및 불러오기(Model save & load)
+  * `torch.save(model.state_dict(), './model.pt')`
+  * `new_model.load_state_dict(torch.load('./model.pt'))`
+
+* 파이토치와 torchvision 이미지 데이터 관련 대표적인 모듈
+  * `torch.utils.data`  
+    * 데이터셋의 표준을 정의하고 데이터셋을 불러오고 처리하는 모듈
+    * 파이토치 모델을 학습시키기 위한 데이터셋의 표준을 `torch.utils.data.Datase`t에 정의함.
+    * Dataset 모듈을 상속하는 파생 클래스는 학습에 필요한 데이터를 로딩해주는 `torch.utils.data.DataLoader` 인스턴스의 입력으로 사용할 수 있다.
+  * `torchvision.datasets`
+    * 이미지 데이터셋의 모음 ex) Fasion MNIST
+  * `torchvision.transfoms`
+    * 이미지 데이터셋에 쓸 수 있는 여러 가지 변환 필터 모듈
+    * ex) resize, crop, brightness, 대비(contrast)
+  * `torchvision.utils`
+    * 이미지 데이터 저장 및 시각화 모듈
+
+* 이미지를 텐서로 바꿔주는 코드
+    ```
+    transform = transforms.Compose([
+    transforms.ToTensor()
+    ])
+    ```
+    * `ToTensor()` 외에도 `Resize`, `Normalize`, `RandomCrop` 등 다양한 Transforms 기능이 많다.
+
+* `DataLoader`
+    ```
+    train_loader = data.DataLoader(
+        dataset     = trainset,
+        batch_size  = batch_size
+    )
+    ```
+    * `DataLoader`는 데이터셋을 Batch라는 작은 단위로 쪼개고 학습 시 반복문 안에서 데이터를 공급해주는 클래스이다.
+
+
 
