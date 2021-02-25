@@ -160,6 +160,21 @@
       * `dataiter = iter(train_loader)`
       * `images, labels = next(dataiter)`
 
+* GPU 사용하기
+  * `USE_CUDA = torch.cuda.is_available()`
+  * `DEVICE = torch.device("cuda" if USE_CUDA else "cpu")`
+  * `model = Net().to(DEVICE)`
+  * `to()` 함수 : 모델의 파라미터들을 지정한 장치의 메모리로 보내는 역할을 한다.
+  * CPU 사용하면 필요 X, GPU 사용하려면 to("cuda")로 지정함.
+
+* 학습하기
+  * `def train(model, train_loader, optimizer):`
+
+* `eq()` : 값이 일치하면 1, 아니면 0을 출력
+  * ex) `pred.eq(target.view_as(pred))`
+  * == `argmax` : 배열에서 가장 큰 값이 있는 인덱스를 출력하는 함수
+  
+* `view_as()` : target 텐서를 view_as() 함수 안에 들어가는 인수(ex. pred)의 모양대로 다시 정렬한다.
 
 
 
