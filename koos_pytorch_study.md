@@ -154,6 +154,10 @@
     )
     ```
     * `DataLoader`는 데이터셋을 Batch라는 작은 단위로 쪼개고 학습 시 반복문 안에서 데이터를 공급해주는 클래스이다.
+    * 데이터 하나씩 살펴보기
+      * `dataiter = iter(train_loader)`
+      * `images, labels = next(dataiter)`
+
 
 
 
