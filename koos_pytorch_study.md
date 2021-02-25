@@ -63,6 +63,8 @@
     print("Shape:", x.shape)
     print("랭크(차원):", x.ndimension())
     ```
+  * EX) Fashion MNIST shape : x.size() -> [64, 1, 28, 28](배치, RGB, 높이, 넓이)
+
 * tensor 랭크, shape 변형
   * `unsqueeze()` : `x = torch.unsqueeze(x,0)` => 2차원 -> 3차원
   * `squeeze()` : 3차원 -> 2차원
@@ -85,7 +87,7 @@
 
 * 데이터 형식(Type) 변환
   * `torch.FloatTensor()` : `x_train = torch.FloatTensor(x_train)` => 파이토치 텐서로 변환
-  * 
+
 
 ## 3. 응용
 
