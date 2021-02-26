@@ -200,3 +200,106 @@
 
 ## 5. RNN 관련
 
+* 3분 딥러닝 파이토치맛 - 07.순차적인 데이터를 처리하는 RNN
+  * `https://github.com/keon/3-min-pytorch/tree/master/
+
+* `torchtext` 사용
+  * `from torchtext import data, datasets`
+
+* IMDB 데이터 RNN 예시
+  * 1) import library
+  * 2) IMDB 데이터셋 로딩 -> Tensor 변환
+    * `TEXT`, `LABEL` 이라는 객체를 생성해 텐서로 변환하는 설정을 지정해줌.
+      ```
+      TEXT = data.Field(sequential=True, batch_first=True, lower=True)
+      LABEL = data.Field(sequential=False, batch_first=True)
+      trainset, testset = datasets.IMDB.splits(TEXT, LABEL)
+      ```
+    * TEXT : Sequential 파라미터를 이용해 데이터셋이 순차적인 데이터셋인지 명시해준다.(sequential=True)
+    * LABEL : 레이블 값은 단순히 클래스를 나타내는 숫자이므로 순차적인 데이터가 아니다.(sequential=False)
+    * batch_first 변수 : 파라미터로 신경망에 입력되는 텐서의 첫 번째 차원값이 batch_size가 되도록 정해준다.
+    * lower 변수 : 텍스트 데이터 속 모든 영문 알파벳을 소문자로 처리
+    * splits() 함수 : 모델에 입력되는 데이터셋을 만들어 줌
+  * 3) 워드 임베딩(`word embedding`)에 필요한 단어 사전(`word vocabulary`) 생성
+    * `TEXT.build_vocab(trainset, min_freq=5)` 
+      * => min_freq는 학습 데이터에서 최소 5번 이상 등장한 단어만을 사전에 담겠다는 뜻.
+      * => 학습 데이터에서 5번 미만으로 출현하는 단어는 Unknown을 뜻하는 `unk`라는 토큰으로 대체됨.
+    * `LABEL.build_vocab(trainset)`
+  * 4) train, validation, test 분할
+    * `trainset, valset = trainset.split(split_ratio=0.8)`
+  * 5) batch를 생성해주는 iterator 생성
+        ```
+        train_iter, val_iter, test_iter = data.BucketIterator.splits(
+                (trainset, valset, testset), batch_size=BATCH_SIZE,
+                shuffle=True, repeat=False)
+        ```
+  * 6) 사전 속 단어들의 개수와 레이블의 수 지정
+    * `vocab_size = len(TEXT.vocab)`
+    * `n_classes = 2`
+  * 7) RNN 모델 생성 : `BasicGRU`
+    * `self.n_layers = n_layers` : `__init__()` 함수에서 hidden vector의 layer인 n_layers를 정의
+    * `self.embed = nn.Embedding(n_vocab, embed_dim)`
+      * n_vocab : 사전 안 vocab 전체 단어 개수
+      * embed_dim : 임베딩된 단어 텐서가 지니는 차원값
+    * RNN을 통해 생성되는 hidden vector의 차원값과 dropout을 정의
+      * `self.hidden_dim = hidden_dim`
+      * `self.dropout = nn.Dropout(dropout_p)`
+    * RNN 모델 정의
+      * `self.gru = nn.GRU(embed_dim, self.hidden_dim, num_layers = self.n_layers, batch_first=True)`
+    * `Forward()` 함수 정의
+      * RNN 계열의 신경망은 입력 데이터 외에도 첫 번째 hidden vector h_0을 정의해 x와 함께 입력해줘야 한다.
+      * 직접 _init_state()라는 함수를 구현하고 호출해서 첫번 째 hidden vector를 정의
+      * `x, _ = self.gru(x, h_0)` : self.gru(x, h_0)의 결과값은 (batch_size, 입력 x의 길이, hidden_dim)의 shape을 지닌 3d 텐서임
+      * `h_t = x[:,-1,:]` : 이것을 통해 hidden vector들의 마지막 토큰들을 내포한 (batch_size, 1, hidden_dim) 모양의 텐서를 추출할 수 있음
+
+    * `_init_state()` 함수
+      ```
+      def _init_state(self, batch_size=1):
+          weight = next(self.parameters()).data # nn.GRU 모듈의 첫 번째 가중치 텐서를 추출
+          return weight.new(self.n_layers, batch_size, self.hidden_dim).zero_() 
+      ```
+      * parameters() 함수 : nn.Moudle의 가중치 정보들을 iterator 형태로 반환
+      * 이 iterator가 생성하는 원소들은 각각 실제 신경망의 가중치 텐서(.data)를 지닌 객체
+      * new() 함수 : 모델의 가중치와 같은 모양인 (n_layers, batch_size, hidden_dim) 모양을 갖춘 텐서로 변환
+      * zero_() 함수 : 텐서 내 모든 값을 0으로 초기화
+      * `h_0 = self._init_state(batch_size=x.size(0))` : 첫 번째 hidden vector h_0은 보통 모든 특성값이 0인 벡터로 설정
+
+
+  * ! RNN이 아닌 GRU를 사용한 이유
+    * 데이터 뒷부분에 다다를수록 앞부분의 정보 손실이 발생하는 RNN의 단점때문에 GRU를 사용한다.
+    * 기본적인 RNN은 입력이 길어지면 학습 도중 `vanishing gradient` 이나 `explosion` 현상으로 인해 앞부분에 대한 정보를 정확히 담지 못할 수 있다.
+    * **GRU는 시계열 데이터 속 벡터 사이의 정보 전달량을 조절함으로써 기울기를 적정하게 유지하고 문장 앞부분의 정보가 끝까지 도달할 수 있도록 도와준다.**
+    * GRU에는 시계열 데이터 내 정보 전달량을 조절하는 **update gate**와 **reset gate**라는 개념이 존재한다.
+    * **update gate** : 이전 hidden vector가 지닌 정보를 새로운 hidden vector가 얼마나 유지할지 정해준다.
+    * **reset gate** : 새로운 입력이 이전 hidden vector와 어떻게 조합하는지 결정한다.
+
+* BasicGRU 전체 코드
+  ```
+  class BasicGRU(nn.Module):
+      def __init__(self, n_layers, hidden_dim, n_vocab, embed_dim, n_classes, dropout_p=0.2):
+          super(BasicGRU, self).__init__()
+          print("Building Basic GRU model...")
+          self.n_layers = n_layers
+          self.embed = nn.Embedding(n_vocab, embed_dim)
+          self.hidden_dim = hidden_dim
+          self.dropout = nn.Dropout(dropout_p)
+          self.gru = nn.GRU(embed_dim, self.hidden_dim,
+                            num_layers=self.n_layers,
+                            batch_first=True)
+          self.out = nn.Linear(self.hidden_dim, n_classes)
+
+      def forward(self, x):
+          x = self.embed(x)
+          h_0 = self._init_state(batch_size=x.size(0))
+          x, _ = self.gru(x, h_0)  # [i, b, h]
+          h_t = x[:,-1,:]
+          self.dropout(h_t)
+          logit = self.out(h_t)  # [b, h] -> [b, o]
+          return logit
+      
+      def _init_state(self, batch_size=1):
+          weight = next(self.parameters()).data
+          return weight.new(self.n_layers, batch_size, self.hidden_dim).zero_()
+  
+  ```
+
