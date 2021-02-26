@@ -114,6 +114,7 @@
     * model.parameter() 함수로 추출한 모델 내부의 가중치와 학습률을 입력한다.
   * weight_decay 사용
     * `optimizer = optim.SGD(model.parameters(), lr=0.1, momentum=0.9, weight_decay=0.0005)`
+    * `optimizer = torch.optim.Adam(autoencoder.parameters(), lr=0.005)`
 
 * item()
   * ex) `test_loss_before.item())` : item() 함수는 텐서 속의 숫자를 스칼라 값으로 반환한다.
@@ -178,6 +179,8 @@
   
 * `view_as()` : target 텐서를 view_as() 함수 안에 들어가는 인수(ex. pred)의 모양대로 다시 정렬한다.
 
+## 4. CNN 관련
+
 * Conv2d
   * `self.conv1 = nn.Conv2d(1, 10, kernel_size=5)`
     * => 커널(필터) 크기 5x5를 사용해서 10개의 feature map을 생성
@@ -195,5 +198,5 @@
   * In PyTorch 1.1.0 and later, you should call them in the opposite order: `optimizer.step()` before `lr_scheduler.step()`.
     * `scheduler.step()은 train 이후에 호출되어야 함. 그렇지 않으면 PyTorch가 학습률 일정의 첫 번째 값을 건너 뛰게 됨.
 
-
+## 5. RNN 관련
 
