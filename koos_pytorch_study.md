@@ -112,6 +112,8 @@
     * ex) `optimizer = torch.optim.SGD(model.parameters(), lr = learning_rate`
     * optimizer는 step() 함수를 부를 때마다 가중치를 학습률만큼 갱신한다.
     * model.parameter() 함수로 추출한 모델 내부의 가중치와 학습률을 입력한다.
+  * weight_decay 사용
+    * `optimizer = optim.SGD(model.parameters(), lr=0.1, momentum=0.9, weight_decay=0.0005)`
 
 * item()
   * ex) `test_loss_before.item())` : item() 함수는 텐서 속의 숫자를 스칼라 값으로 반환한다.
@@ -175,6 +177,23 @@
   * == `argmax` : 배열에서 가장 큰 값이 있는 인덱스를 출력하는 함수
   
 * `view_as()` : target 텐서를 view_as() 함수 안에 들어가는 인수(ex. pred)의 모양대로 다시 정렬한다.
+
+* Conv2d
+  * `self.conv1 = nn.Conv2d(1, 10, kernel_size=5)`
+    * => 커널(필터) 크기 5x5를 사용해서 10개의 feature map을 생성
+  * `self.conv2 = nn.Conv2d(10, 20, kernel_size=5)`
+    * => 커널(필터) 크기 5x5를 사용해서 20개의 feature map을 생성
+ 
+* keras의 Flatten 역할
+  * `x.view(-1, 320)`
+  * 2차원의 feature map을 바로 입력으로 넣을 수 없으므로 view() 함수를 이용하여 1차원으로 펴주는 역할을 함.(차원 축소)
+  * view() 함수에 들어가는 첫 번째 입력 -1은 '남는 차원 모두'를 뜻하고, 320은 x가 가진 원소 개수를 뜻함.
+
+* learning rate decay(학습률 감소) method
+  * `scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=50, gamma=0.1)`
+  * 50번 호출될 떄 학습률에 0.1(gamma)을 곱함. 0.1로 시작한 학습률은 50 epoch 이후 0.01로 낮아짐.
+  * In PyTorch 1.1.0 and later, you should call them in the opposite order: `optimizer.step()` before `lr_scheduler.step()`.
+    * `scheduler.step()은 train 이후에 호출되어야 함. 그렇지 않으면 PyTorch가 학습률 일정의 첫 번째 값을 건너 뛰게 됨.
 
 
 
