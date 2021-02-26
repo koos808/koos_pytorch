@@ -88,6 +88,8 @@
 * 데이터 형식(Type) 변환
   * `torch.FloatTensor()` : `x_train = torch.FloatTensor(x_train)` => 파이토치 텐서로 변환
 
+* sub_() 함수 : 빼기
+  * `y.data.sub_(1)` : y의 모든 값에서 1씩 뺌
 
 ## 3. 응용
 
@@ -240,9 +242,9 @@
     * `self.n_layers = n_layers` : `__init__()` 함수에서 hidden vector의 layer인 n_layers를 정의
     * `self.embed = nn.Embedding(n_vocab, embed_dim)`
       * n_vocab : 사전 안 vocab 전체 단어 개수
-      * embed_dim : 임베딩된 단어 텐서가 지니는 차원값
+      * embed_dim : 임베딩된 단어 텐서가 지니는 차원값. 즉, 임베딩된 토큰의 차원 값
     * RNN을 통해 생성되는 hidden vector의 차원값과 dropout을 정의
-      * `self.hidden_dim = hidden_dim`
+      * `self.hidden_dim = hidden_dim` # 모델 내 hidden vector의 차원 값
       * `self.dropout = nn.Dropout(dropout_p)`
     * RNN 모델 정의
       * `self.gru = nn.GRU(embed_dim, self.hidden_dim, num_layers = self.n_layers, batch_first=True)`
@@ -263,7 +265,9 @@
       * new() 함수 : 모델의 가중치와 같은 모양인 (n_layers, batch_size, hidden_dim) 모양을 갖춘 텐서로 변환
       * zero_() 함수 : 텐서 내 모든 값을 0으로 초기화
       * `h_0 = self._init_state(batch_size=x.size(0))` : 첫 번째 hidden vector h_0은 보통 모든 특성값이 0인 벡터로 설정
-
+  * model save & load
+    * save : `torch.save(model.state_dict(), './snapshot/txtclassification.pt')`
+    * load : `model.load_state_dict(torch.load('./snapshot/txtclassification.pt'))`
 
   * ! RNN이 아닌 GRU를 사용한 이유
     * 데이터 뒷부분에 다다를수록 앞부분의 정보 손실이 발생하는 RNN의 단점때문에 GRU를 사용한다.
@@ -303,3 +307,21 @@
   
   ```
 
+
+* `Seq2Seq` 예시 : hello를 hola로 번역하는 미니 Seq2Seq 모델
+  * Seq2Seq 모델은 시퀀스를 입력받아 또 다른 시퀀스를 출력함.
+  * 한마디로 문장을 다른 문장으로 번역해주는 모델이다.
+  * 병렬 말뭉치(`parallel corpora`)라고 하는 원문과 번역문이 쌍을 이루는 형태의 많은 텍스트 데이터가 필요함.
+
+  * Seq2Seq 모델은 각자 다른 역할을 하는 두개의 RNN(encoder, decoder)을 이어붙인 모델이다.
+    * **Encoder** : 원문 내용을 학습하는 RNN. 원문 속 모든 단어로 하나의 고정 크기 텐서를 생성(=`문맥 벡터::context vector`)함. 원문 마지막 토큰에 해당하는 hidden vector는 원문의 뜻을 모두 내포하고 있는 context vector이다.
+      * Autoencoder는 정적인 데이터에서 정보를 추려 차원 수를 줄이고, 축약된 데이터는 원본 데이터의 중요한 내용들만 내포하고 있다. Seq2Seq 모델의 RNN 인코더는 동적인 시계열 데이터를 간단한 형태의 정적인 데이터로 축약한다. 즉, RNN 인코더를 거쳐 만들어진 context vector는 시계열 데이터를 압축한 데이터이다.
+    * **Decoder** : encoder에게서 context vector를 이어받아 번역문 속의 토큰을 차례대로 예상한다.
+    * decoder가 예상해낸 모든 토큰과 실제 번역문 사이의 오차를 줄여나가는 것이 Seq2Seq 모델이 학습하는 기본 원리이다.
+  * **character embedding** : 단어 단위의 워드 임베딩이 아닌 글자 단위의 임베딩
+    * 영문을 숫자로 표현하는 방식인 **아스키(ascii)** 코드를 사용해 임베딩
+    * `x_ =list(map(ord, "hello"))`
+    * `torch.LongTensor(x_)` : 아스키 코드 배열을 파이토치 텐서로 변환
+  * **teacher forcing**
+    * 티처 포싱은 디코더 학습 시 실제 번역문의 토큰을 디코더의 전 출력값 대신 입력으로 사용해 학습을 가속하는 방법이다. 학습되기 전 모델이 잘못된 예측 토큰을 입력으로 사용되는 것을 방지하는 기법.
+    * 
